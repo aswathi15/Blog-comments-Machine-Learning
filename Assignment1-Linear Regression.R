@@ -62,25 +62,50 @@ t_feb_02_test <- textual_column_change(t_feb_02_test)
 t_march_01_test <- textual_column_change(t_march_01_test)
 t_march_02_test <- textual_column_change(t_march_02_test)
 
+#------------Applying PCA for Basic Features ------------------------------
+pca = preProcess(x = basic_df[-11],method='pca',pcaComp = 2)
+basic_df <- predict(pca,basic_df)
+basic_df <- basic_df[c(2,3,1)]
+
+b_feb_01_test <- predict(pca,b_feb_01_test)
+b_feb_01_test <- b_feb_01_test[c(2,3,1)]
+
+b_feb_02_test <- predict(pca,b_feb_02_test)
+b_feb_02_test <- b_feb_02_test[c(2,3,1)]
+
+b_march_01_test <- predict(pca,b_march_01_test)
+b_march_01_test <- b_march_01_test[c(2,3,1)]
+
+b_march_02_test <- predict(pca,b_march_02_test)
+b_march_02_test <- b_march_02_test[c(2,3,1)]
+
+#------------Applying PCA for Textual Features ------------------------------
+pca_1 = preProcess(x = textual_df[-201],method='pca',pcaComp = 2)
+textual_df <- predict(pca_1,textual_df)
+textual_df <- textual_df[c(2,3,1)]
+
+t_feb_01_test <- predict(pca_1,t_feb_01_test)
+t_feb_01_test <- t_feb_01_test[c(2,3,1)]
+
+t_feb_02_test <- predict(pca_1,t_feb_02_test)
+t_feb_02_test <- t_feb_02_test[c(2,3,1)]
+
+t_march_01_test <- predict(pca_1,t_march_01_test)
+t_march_01_test <- t_march_01_test[c(2,3,1)]
+
+t_march_02_test <- predict(pca_1,t_march_02_test)
+t_march_02_test <- t_march_02_test[c(2,3,1)]
 
 #--------------Multiple Linear Regression for Basic Features----------------------
 
 b_regressor = lm(formula = Btarget ~ .,data = basic_df)
 summary(b_regressor)
 
-# Let us keep the level of significance as 0.001
-# We will use the backward elimination and check for the highest p-value, 
-# and remove it from the model and refit hte model. 
-
-b_regressor_1 = lm(formula = Btarget ~ .-B53-B55-B58-B60,
-               data = basic_df)
-summary(b_regressor_1)
-#Now we have all the variables as significant , and regressor_1 is our final
-#linear regression model. We can now use the test set to predict the results. 
-b_predict_feb01 = predict(b_regressor_1,newdata = b_feb_01_test[,1:10])
-b_predict_feb02 = predict(b_regressor_1,newdata = b_feb_02_test[,1:10])
-b_predict_mar01 = predict(b_regressor_1,newdata = b_march_01_test[,1:10])
-b_predict_mar02 = predict(b_regressor_1,newdata = b_march_02_test[,1:10])
+ 
+b_predict_feb01 = predict(b_regressor,newdata = b_feb_01_test[-3])
+b_predict_feb02 = predict(b_regressor,newdata = b_feb_02_test[-3])
+b_predict_mar01 = predict(b_regressor,newdata = b_march_01_test[-3])
+b_predict_mar02 = predict(b_regressor,newdata = b_march_02_test[-3])
 print(b_predict_feb01)
 
 b_mse_feb01 = mse(b_feb_01_test$Btarget,b_predict_feb01)
@@ -93,27 +118,17 @@ b_mse_mar02 = mse(b_march_02_test$Btarget,b_predict_mar02)
 t_regressor = lm(formula = Ttarget ~ ., data = textual_df)
 summary(t_regressor)
 
-# Let us keep the level of significance as 0.001
-# We will only keep those features which are significant
-# 69,72,77,102,125,137,154,170,184,191,194,195,210,219,228,232,241,251
 
-t_regressor_1 = lm(formula = Ttarget ~ T69+T72+T77+T102+T125+T137+T154+T170+
-                     T184+T191+T194+T195+T210+T219+T228+T232+T241+T251
+t_regressor_1 = lm(formula = Ttarget ~ PC2
                      ,data=textual_df)
 summary(t_regressor_1)
 
-#t_regressor_2 = lm(formula = Ttarget ~ T69-T72+T77+T102+T125-T137+T154+T170+
-#                     T184+T191+T194+T195+T210+T219+T228+T232-T241+T251
-#                   ,data=textual_df)
 
-t_regressor_2 = lm(formula = Ttarget ~ T69+T77+T102+T125+T154+T170+T184+T191+T194+T195+T210+T219+T228+T232+T251
-                   ,data=textual_df)
-summary(t_regressor_2)
 
-t_predict_feb01 = predict(t_regressor_2,newdata = t_feb_01_test)
-t_predict_feb02 = predict(t_regressor_2,newdata = t_feb_02_test)
-t_predict_mar01 = predict(t_regressor_2,newdata = t_march_01_test)
-t_predict_mar02 = predict(t_regressor_2,newdata = t_march_02_test)
+t_predict_feb01 = predict(t_regressor_1,newdata = t_feb_01_test)
+t_predict_feb02 = predict(t_regressor_1,newdata = t_feb_02_test)
+t_predict_mar01 = predict(t_regressor_1,newdata = t_march_01_test)
+t_predict_mar02 = predict(t_regressor_1,newdata = t_march_02_test)
 print(t_predict_feb01)
 
 t_mse_feb01 = mse(t_feb_01_test$Ttarget,t_predict_feb01)
